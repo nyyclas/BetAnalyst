@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BetAnalyst — Dashboard (Static)</title>
+
+  <!-- Tailwind CDN (optional styling) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    .card { background: white; border-radius: 0.5rem; box-shadow: 0 6px 18px rgba(12, 12, 12, 0.06); padding: 1rem; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <header class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-semibold">BetAnalyst — Statisches Dashboard</h1>
+    <p class="text-sm text-gray-600 mt-1">Schnellstart: statische Ansicht, direkt per GitHub Pages.</p>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 pb-12">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="card">
+        <h3 class="text-sm text-gray-500">ROI</h3>
+        <p id="roi" class="text-2xl font-bold text-green-600">—</p>
+      </div>
+      <div class="card">
+        <h3 class="text-sm text-gray-500">Win Rate</h3>
+        <p id="winrate" class="text-2xl font-bold text-blue-600">—</p>
+      </div>
+      <div class="card">
+        <h3 class="text-sm text-gray-500">Total Bets</h3>
+        <p id="totalbets" class="text-2xl font-bold text-purple-600">—</p>
+      </div>
+    </section>
+
+    <section class="card mb-6">
+      <h2 class="text-lg font-medium mb-4">Performance (Monatlich)</h2>
+      <canvas id="barChart" width="800" height="300"></canvas>
+    </section>
+
+    <section class="card">
+      <h2 class="text-lg font-medium mb-4">Live-Status</h2>
+      <p id="health" class="text-sm text-gray-700">Prüfe /health...</p>
+      <p class="text-xs text-gray-500 mt-2">Tipp: Wenn du FastAPI-Backend unter http://localhost:8000 laufen hast, aktiviere CORS für deine Domain.</p>
+    </section>
+  </main>
+
+  <footer class="max-w-5xl mx-auto px-6 pb-6 text-xs text-gray-500">
+    BetAnalyst — statische Vorschau · Erzeugt für mobile Upload in dein Repo
+  </footer>
+
+  <script>
+    // Demo-Daten (du kannst diese mit echten Daten ersetzen)
+    const demo = {
+      roi: "+12.5%",
+      winrate: "62%",
+      totalbets: 156,
+      months: ["Jan","Feb","Mar","Apr","May","Jun"],
+      wins: [40,30,20,45,33,50],
+      losses: [24,13,18,20,17,10]
+    };
+
+    document.getElementById('roi').textContent = demo.roi;
+    document.getElementById('winrate').textContent = demo.winrate;
+    document.getElementById('totalbets').textContent = demo.totalbets;
+
+    const ctx = document.getElementById('barChart').getContext('2d');
+    const barChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: demo.months,
+        datasets: [
+          { label: 'Wins', data: demo.wins, backgroundColor: '#10b981' },
+          { label: 'Losses', data: demo.losses, backgroundColor: '#ef4444' }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    // Optional: health check to backend (funktioniert nur wenn Backend erreichbar + CORS erlaubt)
+    async function checkHealth() {
+      try {
+        const resp = await fetch('/api/v1/health' , { method: 'GET' });
+        if (resp.ok) {
+          const data = await resp.json();
+          document.getElementById('health').textContent = 'Backend: ' + JSON.stringify(data);
+        } else {
+          document.getElementById('health').textContent = 'Backend: kein Zugriff (' + resp.status + ')';
+        }
+      } catch (err) {
+        document.getElementById('health').textContent = 'Backend: nicht erreichbar (nur lokale Demo)';
+      }
+    }
+
+    // Wenn dein Backend an anderer Stelle läuft, passe die URL oben an oder entferne Aufruf
+    // checkHealth();
+  </script>
+</body>
+</html>
